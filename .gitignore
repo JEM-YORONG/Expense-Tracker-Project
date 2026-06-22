@@ -25,5 +25,8 @@ vite-debug.log*
 # OS files
 Thumbs.db
 
+# Expo
+.expo/
+
 # Update logs
 docs/updates/

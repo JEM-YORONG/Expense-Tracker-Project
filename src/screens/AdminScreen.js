@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import { db } from '../services/database';
+import * as SQLite from 'expo-sqlite';
 
-export default function AdminScreen({ onBack }) {
+// Global database instance
+let db = null;
+async function getDb() {
+  if (db) return db;
+  db = await SQLite.openDatabaseAsync('expenseTracker.db');
+  return db;
+}
+
+export default function AdminScreen({ user, onLogout, onBack }) {
   const [users, setUsers] = useState([]);
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' });
   const [editingId, setEditingId] = useState(null);
@@ -22,7 +30,8 @@ export default function AdminScreen({ onBack }) {
   }, [form.name]);
 
   const loadUsers = async () => {
-    const data = await db.getUsers();
+    const database = await getDb();
+    const data = await database.getAllAsync('SELECT * FROM users');
     setUsers(data);
   };
 
@@ -33,17 +42,18 @@ export default function AdminScreen({ onBack }) {
       if (!form.name.trim() || !form.email.trim() || (!form.password && !editingId)) {
         throw new Error('All fields are required.');
       }
-      const payload = {
-        name: form.name.trim(),
-        email: form.email.trim(),
-        password: form.password,
-        role: form.role,
-      };
+      const database = await getDb();
       if (editingId) {
-        await db.updateUser(editingId, payload);
+        const keys = Object.keys({ name: form.name.trim(), email: form.email.trim(), password: form.password, role: form.role });
+        const values = [form.name.trim(), form.email.trim(), form.password, form.role];
+        const setClause = keys.map(k => `${k} = ?`).join(', ');
+        await database.runAsync(`UPDATE users SET ${setClause} WHERE id = ?`, [...values, editingId]);
         setEditingId(null);
       } else {
-        await db.saveUser(payload);
+        await database.runAsync(
+          'INSERT INTO users (id, email, password, name, role) VALUES (?, ?, ?, ?, ?)',
+          [Date.now().toString(), form.email, form.password, form.name, form.role]
+        );
       }
       setForm({ name: '', email: '', password: '', role: 'user' });
       await loadUsers();
@@ -60,7 +70,8 @@ export default function AdminScreen({ onBack }) {
   };
 
   const handleDelete = async (id) => {
-    await db.deleteUser(id);
+    const database = await getDb();
+    await database.runAsync('DELETE FROM users WHERE id = ?', [id]);
     await loadUsers();
   };
 
@@ -72,6 +83,26 @@ export default function AdminScreen({ onBack }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.brand}>
+          <View style={styles.logo}>
+            <Text style={styles.logoText}>₱</Text>
+          </View>
+          <View>
+            <Text style={styles.appTitle}>Expense Tracker</Text>
+            <Text style={styles.appSubtitle}>Admin Panel</Text>
+          </View>
+        </View>
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={onBack} style={styles.iconBtn}>
+            <Text style={styles.iconBtnText}>🏠</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onLogout} style={styles.iconBtn}>
+            <Text style={styles.iconBtnText}>🚪</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <View style={styles.layout}>
         <View style={styles.formCard}>
           <Text style={styles.formTitle}>{editingId ? 'Edit User' : 'Add New User'}</Text>
@@ -182,9 +213,59 @@ const styles = StyleSheet.create({
     backgroundColor: '#f6f7fb',
     padding: 16,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logo: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#111827',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  appTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1f2937',
+  },
+  appSubtitle: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconBtnText: {
+    fontSize: 18,
+    color: '#111827',
+  },
   layout: {
     flexDirection: 'row',
     gap: 16,
+    flex: 1,
   },
   formCard: {
     flex: 1,

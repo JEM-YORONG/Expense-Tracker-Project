@@ -9,12 +9,9 @@ export default function AddTransaction({ onAdd }) {
   const [category, setCategory] = useState('Food');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
 
-  const id = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
-
   const submit = () => {
     if (!title.trim() || !amount) return;
     onAdd({
-      id: id(),
       title: title.trim(),
       amount: Number(amount),
       category,

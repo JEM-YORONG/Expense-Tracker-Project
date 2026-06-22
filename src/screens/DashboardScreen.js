@@ -1,10 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ScrollView, Modal } from 'react-native';
-import { db, THEMES } from '../services/database';
+import * as SQLite from 'expo-sqlite';
 import BalanceDisplay from '../components/BalanceDisplay';
 import BudgetInput from '../components/BudgetInput';
 import AddTransaction from '../components/AddTransaction';
 import Analytics from '../components/Analytics';
+
+// Global database instance
+let db = null;
+async function getDb() {
+  if (db) return db;
+  db = await SQLite.openDatabaseAsync('expenseTracker.db');
+  return db;
+}
 
 const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Other'];
 const ICONS = {
@@ -17,7 +25,7 @@ const ICONS = {
   Other: '📦',
 };
 
-export default function DashboardScreen({ user }) {
+export default function DashboardScreen({ user, onLogout }) {
   const userId = user?.id || user?.email;
   const [budget, setBudget] = useState('');
   const [transactions, setTransactions] = useState([]);
@@ -33,34 +41,53 @@ export default function DashboardScreen({ user }) {
 
   useEffect(() => {
     const init = async () => {
-      const [txs, savedBudget] = await Promise.all([
-        db.getTransactions(userId),
-        db.getBudget(userId)
+      const db = await getDb();
+      const [txs, budgetResult] = await Promise.all([
+        db.getAllAsync('SELECT * FROM transactions WHERE userId = ? ORDER BY date DESC', [userId]),
+        db.getFirstAsync('SELECT amount FROM budgets WHERE userId = ?', [userId])
       ]);
       setTransactions(txs);
-      setBudget(savedBudget);
+      setBudget(budgetResult?.amount || '');
     };
     init();
   }, [userId]);
 
   const saveBudget = async (value) => {
+    const db = await getDb();
     setBudget(value);
-    await db.saveBudget(userId, value);
+    const existing = await db.getFirstAsync('SELECT * FROM budgets WHERE userId = ?', [userId]);
+    if (existing) {
+      await db.runAsync('UPDATE budgets SET amount = ? WHERE userId = ?', [value, userId]);
+    } else {
+      await db.runAsync('INSERT INTO budgets (userId, amount) VALUES (?, ?)', [userId, value]);
+    }
   };
 
   const addTransaction = async (tx) => {
-    const updated = await db.saveTransaction(userId, tx);
-    setTransactions(updated);
+    const db = await getDb();
+    await db.runAsync(
+      'INSERT INTO transactions (userId, title, amount, category, date) VALUES (?, ?, ?, ?, ?)',
+      [userId, tx.title, tx.amount, tx.category, tx.date]
+    );
+    const txs = await db.getAllAsync('SELECT * FROM transactions WHERE userId = ? ORDER BY date DESC', [userId]);
+    setTransactions(txs);
   };
 
   const deleteTransaction = async (id) => {
-    const updated = await db.deleteTransaction(userId, id);
-    setTransactions(updated);
+    const db = await getDb();
+    await db.runAsync('DELETE FROM transactions WHERE userId = ? AND id = ?', [userId, id]);
+    const txs = await db.getAllAsync('SELECT * FROM transactions WHERE userId = ? ORDER BY date DESC', [userId]);
+    setTransactions(txs);
   };
 
   const updateTransaction = async (id, updates) => {
-    const updated = await db.updateTransaction(userId, id, updates);
-    setTransactions(updated);
+    const db = await getDb();
+    const keys = Object.keys(updates);
+    const values = Object.values(updates);
+    const setClause = keys.map(k => `${k} = ?`).join(', ');
+    await db.runAsync(`UPDATE transactions SET ${setClause} WHERE userId = ? AND id = ?`, [...values, userId, id]);
+    const txs = await db.getAllAsync('SELECT * FROM transactions WHERE userId = ? ORDER BY date DESC', [userId]);
+    setTransactions(txs);
     setModal({ open: false, tx: null });
   };
 
@@ -98,6 +125,11 @@ export default function DashboardScreen({ user }) {
             <Text style={styles.appSubtitle}>Smart budget management</Text>
           </View>
         </View>
+        {onLogout && (
+          <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
+            <Text style={styles.logoutBtnText}>🚪</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.content}>
@@ -293,12 +325,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#f6f7fb',
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: 16,
   },
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  logoutBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoutBtnText: {
+    fontSize: 18,
   },
   logo: {
     width: 44,
