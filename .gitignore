@@ -25,5 +25,5 @@ vite-debug.log*
 # OS files
 Thumbs.db
 
-# Others
-AI-Instructions.md
+# Update logs
+docs/updates/
