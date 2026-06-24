@@ -1,0 +1,2 @@
+# Required asset directory - can be empty for development
+# Expo will look for splash.png, icon.png, favicon.png here in production

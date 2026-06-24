@@ -25,5 +25,11 @@ vite-debug.log*
 # OS files
 Thumbs.db
 
-# Others
-AI-Instructions.md
+# Expo
+.expo/
+
+# Update logs
+docs/updates/
+
+# AI agents
+ai-agents/
