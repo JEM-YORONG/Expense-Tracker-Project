@@ -30,3 +30,6 @@ Thumbs.db
 
 # Update logs
 docs/updates/
+
+# AI agents
+ai-agents/

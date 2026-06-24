@@ -27,7 +27,7 @@ Expense-Tracker-Mobile/
 ├── assets/                # Static assets
 ├── src/
 │   ├── services/
-│   │   └── database.js    # SQLite openDatabaseAsync re-export
+│   │   └── database.js    # Re-exports openDatabaseAsync; theme constants (THEMES)
 │   ├── screens/
 │   │   ├── LoginScreen.js # Login form with email/password validation
 │   │   ├── DashboardScreen.js # Main dashboard with logout button
@@ -43,10 +43,12 @@ Expense-Tracker-Mobile/
 
 ### Database Layer
 
-**App.js** and each screen module has its own `getDb()` function that:
+Each file (**App.js**, **DashboardScreen.js**, **AdminScreen.js**) has its own `getDb()` function that:
 - Opens SQLite database via `expo-sqlite`
 - Creates tables if they don't exist (users, transactions, budgets)
 - Uses SDK 54's `execAsync()` with string-based SQL
+
+**Technical Debt**: The `getDb()` function is duplicated across 3 files. This should be centralized in a single service module.
 
 ### Screens
 
@@ -149,3 +151,14 @@ await db.execAsync('CREATE TABLE IF NOT EXISTS users (...)');
 - Expo Go must be updated to latest version for SDK 54 compatibility
 - Clear Expo cache (`Settings → Advanced → Clear Cache` in Expo Go) if experiencing load issues
 - Database errors display on screen instead of console when running in Expo Go
+
+## Technical Debt
+
+The following issues require attention in future sprints:
+
+- **Database centralization**: `getDb()` duplicated in App.js, DashboardScreen.js, AdminScreen.js
+- **No error boundaries**: App can crash without recovery UI
+- **Form validation**: Minimal client-side validation only (no schema validation)
+- **No TypeScript**: All `.js` files lack type safety
+- **No tests**: No automated test coverage
+- **No linting rules**: Only basic Expo eslint config exists
