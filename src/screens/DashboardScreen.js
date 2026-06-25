@@ -201,11 +201,9 @@ function TransactionList({ transactions, onDelete, onOpenModal, category, dateFr
       {transactions.length === 0 ? (
         <Text style={styles.empty}>No transactions found</Text>
       ) : (
-        <FlatList
-          data={transactions}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.row} onPress={() => onOpenModal({ open: true, tx: item })}>
+        <View>
+          {transactions.map((item) => (
+            <TouchableOpacity key={item.id} style={styles.row} onPress={() => onOpenModal({ open: true, tx: item })}>
               <View style={styles.rowLeft}>
                 <View style={styles.iconDot}>
                   <Text>{ICONS[item.category] || '📦'}</Text>
@@ -222,8 +220,8 @@ function TransactionList({ transactions, onDelete, onOpenModal, category, dateFr
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
-          )}
-        />
+          ))}
+        </View>
       )}
     </View>
   );

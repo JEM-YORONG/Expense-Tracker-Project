@@ -169,13 +169,9 @@ export default function AdminScreen({ user, onLogout, onBack }) {
               <Text style={styles.empty}>No users found. Add your first user above.</Text>
             </View>
           ) : (
-            <FlatList
-              data={users}
-              keyExtractor={(item) => item.id}
-              nestedScrollEnabled
-              scrollEnabled={false}
-              renderItem={({ item }) => (
-                <View style={styles.row}>
+            <View>
+              {users.map((item) => (
+                <View key={item.id} style={styles.row}>
                   <View style={styles.rowLeft}>
                     <View style={styles.iconDot}>
                       <Text>👤</Text>
@@ -194,8 +190,8 @@ export default function AdminScreen({ user, onLogout, onBack }) {
                     </TouchableOpacity>
                   </View>
                 </View>
-              )}
-            />
+              ))}
+            </View>
           )}
         </View>
       </View>
