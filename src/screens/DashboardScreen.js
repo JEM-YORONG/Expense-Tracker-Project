@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ScrollView, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { getDb } from '../services/database';
 import BalanceDisplay from '../components/BalanceDisplay';
 import BudgetInput from '../components/BudgetInput';
@@ -106,20 +107,21 @@ export default function DashboardScreen({ user, onLogout }) {
   }, [transactions, category, dateFrom, dateTo, sort]);
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.brand}>
+        <View style={styles.headerBrand}>
           <View style={styles.logo}>
             <Text style={styles.logoText}>₱</Text>
           </View>
-          <View>
-            <Text style={styles.appTitle}>Expense Tracker</Text>
-            <Text style={styles.appSubtitle}>Smart budget management</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Expense Tracker</Text>
+            <Text style={styles.headerSubtitle}>Smart budget management</Text>
           </View>
         </View>
         {onLogout && (
-          <TouchableOpacity onPress={onLogout} style={styles.logoutBtn}>
-            <Text style={styles.logoutBtnText}>🚪</Text>
+          <TouchableOpacity onPress={onLogout} style={styles.headerActionBtn}>
+            <Text style={styles.headerActionText}>Logout</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -154,6 +156,7 @@ export default function DashboardScreen({ user, onLogout }) {
         />
       </Modal>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -320,45 +323,61 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
-  brand: {
+  headerBrand: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  logoutBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoutBtnText: {
-    fontSize: 18,
-  },
   logo: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     backgroundColor: '#111827',
     justifyContent: 'center',
     alignItems: 'center',
   },
   logoText: {
     color: 'white',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
   },
-  appTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1f2937',
+  headerText: {
+    justifyContent: 'center',
   },
-  appSubtitle: {
-    fontSize: 13,
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  headerSubtitle: {
+    fontSize: 12,
     color: '#6b7280',
+    marginTop: 1,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  headerActionBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    minHeight: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerActionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
   },
   content: {
     padding: 16,
