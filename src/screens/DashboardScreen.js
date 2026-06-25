@@ -464,6 +464,7 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textTransform: 'uppercase',
     marginBottom: 14,
+    letterSpacing: 0.5,
   },
   welcomeCard: {
     backgroundColor: '#111827',
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     fontSize: 13,
     backgroundColor: '#fdfdfd',
-    minHeight: 36,
+    minHeight: 44,
     justifyContent: 'center',
   },
   filterText: {

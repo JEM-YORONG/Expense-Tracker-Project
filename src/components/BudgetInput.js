@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     backgroundColor: '#fdfdfd',
     color: '#111827',
+    minHeight: 44,
   },
   button: {
     backgroundColor: '#111827',
