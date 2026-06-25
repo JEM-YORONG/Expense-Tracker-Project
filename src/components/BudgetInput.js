@@ -12,13 +12,16 @@ export default function BudgetInput({ onSave }) {
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Budget</Text>
       <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="Budget"
-          value={value}
-          onChangeText={setValue}
-          keyboardType="numeric"
-        />
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Monthly Budget</Text>
+          <TextInput
+            style={styles.input}
+            value={value}
+            onChangeText={setValue}
+            placeholder="Enter budget amount"
+            keyboardType="numeric"
+          />
+        </View>
         <TouchableOpacity style={styles.button} onPress={submit}>
           <Text style={styles.buttonText}>Save Budget</Text>
         </TouchableOpacity>
@@ -45,9 +48,18 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textTransform: 'uppercase',
     marginBottom: 14,
+    letterSpacing: 0.5,
   },
   form: {
-    gap: 12,
+    gap: 14,
+  },
+  inputGroup: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
   },
   input: {
     borderWidth: 1,
@@ -56,12 +68,15 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 14,
     backgroundColor: '#fdfdfd',
+    color: '#111827',
   },
   button: {
     backgroundColor: '#111827',
     borderRadius: 10,
     padding: 14,
     alignItems: 'center',
+    marginTop: 4,
+    minHeight: 44,
   },
   buttonText: {
     color: 'white',

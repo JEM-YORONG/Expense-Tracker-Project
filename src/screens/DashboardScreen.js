@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getDb } from '../services/database';
 import BalanceDisplay from '../components/BalanceDisplay';
@@ -177,12 +177,19 @@ function WelcomeBanner({ user }) {
 }
 
 function TransactionList({ transactions, onDelete, onOpenModal, category, dateFrom, dateTo, sort, ...setters }) {
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [showSortPicker, setShowSortPicker] = useState(false);
+
   return (
     <View style={[styles.transactionsCard, styles.card]}>
       <Text style={styles.cardTitle}>Transactions</Text>
-      
+
       <View style={styles.filters}>
-        <FilterSelect value={category} onChange={setters.onCategoryChange} />
+        <TouchableOpacity style={styles.filterInput} onPress={() => setShowCategoryPicker(true)}>
+          <Text style={category && category !== 'All' ? styles.filterText : styles.filterPlaceholder}>
+            {category || 'Category'}
+          </Text>
+        </TouchableOpacity>
         <TextInput
           style={styles.filterInput}
           value={dateFrom}
@@ -195,11 +202,67 @@ function TransactionList({ transactions, onDelete, onOpenModal, category, dateFr
           onChangeText={setters.onDateToChange}
           placeholder="To"
         />
-        <SortSelect value={sort} onChange={setters.onSortChange} />
+        <TouchableOpacity style={styles.filterInput} onPress={() => setShowSortPicker(true)}>
+          <Text style={sort ? styles.filterText : styles.filterPlaceholder}>
+            {sort === 'newest' ? 'Newest' : sort === 'oldest' ? 'Oldest' : 'Amount ↓'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
+      <Modal visible={showCategoryPicker} transparent animationType="fade">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowCategoryPicker(false)}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Category</Text>
+            {['All', 'Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Other'].map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                style={[styles.modalOption, category === cat && styles.modalOptionSelected]}
+                onPress={() => {
+                  setters.onCategoryChange(cat);
+                  setShowCategoryPicker(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, category === cat && styles.modalOptionTextSelected]}>
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={showSortPicker} transparent animationType="fade">
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowSortPicker(false)}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Sort By</Text>
+            {[
+              { key: 'newest', label: 'Newest' },
+              { key: 'oldest', label: 'Oldest' },
+              { key: 'amount-high', label: 'Amount ↓' },
+            ].map((opt) => (
+              <TouchableOpacity
+                key={opt.key}
+                style={[styles.modalOption, sort === opt.key && styles.modalOptionSelected]}
+                onPress={() => {
+                  setters.onSortChange(opt.key);
+                  setShowSortPicker(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, sort === opt.key && styles.modalOptionTextSelected]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {transactions.length === 0 ? (
-        <Text style={styles.empty}>No transactions found</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>📋</Text>
+          <Text style={styles.empty}>No transactions found</Text>
+          <Text style={styles.emptyHint}>Add your first transaction below</Text>
+        </View>
       ) : (
         <View>
           {transactions.map((item) => (
@@ -215,8 +278,8 @@ function TransactionList({ transactions, onDelete, onOpenModal, category, dateFr
               </View>
               <View style={styles.rowRight}>
                 <Text style={styles.rowAmount}>-₱{item.amount}</Text>
-                <TouchableOpacity onPress={() => onDelete(item.id)}>
-                  <Text style={styles.deleteBtn}>✕</Text>
+                <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete(item.id)}>
+                  <Text style={styles.deleteBtnText}>Delete</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -232,6 +295,7 @@ function EditModal({ tx, onClose, onSave }) {
   const [amount, setAmount] = useState(String(tx?.amount || ''));
   const [category, setCategory] = useState(tx?.category || 'Food');
   const [date, setDate] = useState(tx?.date || '');
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
 
   const save = () => {
     if (tx) {
@@ -248,7 +312,7 @@ function EditModal({ tx, onClose, onSave }) {
             <Text style={styles.closeBtn}>✕</Text>
           </TouchableOpacity>
         </View>
-        
+
         <View style={styles.modalForm}>
           <TextInput
             style={styles.input}
@@ -263,12 +327,9 @@ function EditModal({ tx, onClose, onSave }) {
             placeholder="Amount"
             keyboardType="numeric"
           />
-          <TextInput
-            style={styles.input}
-            value={category}
-            onChangeText={setCategory}
-            placeholder="Category"
-          />
+          <TouchableOpacity style={styles.input} onPress={() => setShowCategoryPicker(true)}>
+            <Text style={category ? styles.inputText : styles.placeholderText}>{category}</Text>
+          </TouchableOpacity>
           <TextInput
             style={styles.input}
             value={date}
@@ -276,10 +337,32 @@ function EditModal({ tx, onClose, onSave }) {
             placeholder="Date (YYYY-MM-DD)"
           />
         </View>
-        
+
+        <Modal visible={showCategoryPicker} transparent animationType="fade">
+          <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowCategoryPicker(false)}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Category</Text>
+              {CATEGORIES.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[styles.modalOption, cat === category && styles.modalOptionSelected]}
+                  onPress={() => {
+                    setCategory(cat);
+                    setShowCategoryPicker(false);
+                  }}
+                >
+                  <Text style={[styles.modalOptionText, cat === category && styles.modalOptionTextSelected]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
         <View style={styles.modalActions}>
           <TouchableOpacity style={styles.secondaryBtn} onPress={onClose}>
-            <Text>Cancel</Text>
+            <Text style={styles.secondaryBtnText}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.primaryBtn} onPress={save}>
             <Text style={styles.primaryBtnText}>Save changes</Text>
@@ -287,28 +370,6 @@ function EditModal({ tx, onClose, onSave }) {
         </View>
       </View>
     </View>
-  );
-}
-
-function FilterSelect({ value, onChange }) {
-  return (
-    <TextInput
-      style={styles.filterInput}
-      value={value}
-      onChangeText={onChange}
-      placeholder="Category"
-    />
-  );
-}
-
-function SortSelect({ value, onChange }) {
-  return (
-    <TextInput
-      style={styles.filterInput}
-      value={value}
-      onChangeText={onChange}
-      placeholder="Sort"
-    />
   );
 }
 
@@ -419,48 +480,67 @@ const styles = StyleSheet.create({
   },
   filterInput: {
     flex: 1,
-    minWidth: 120,
+    minWidth: 100,
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 10,
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     fontSize: 13,
     backgroundColor: '#fdfdfd',
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  filterText: {
+    fontSize: 13,
+    color: '#111827',
+  },
+  filterPlaceholder: {
+    fontSize: 13,
+    color: '#9ca3af',
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 10,
+    padding: 14,
     borderRadius: 12,
     backgroundColor: '#fafafa',
-    marginBottom: 8,
+    marginBottom: 10,
+    minHeight: 64,
   },
   rowLeft: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
     flex: 1,
+    alignItems: 'center',
   },
   iconDot: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   rowMeta: {
     flex: 1,
   },
   rowTitle: {
     fontWeight: '600',
+    fontSize: 15,
+    color: '#111827',
   },
   rowSub: {
     fontSize: 12,
     color: '#6b7280',
+    marginTop: 2,
   },
   rowRight: {
     flexDirection: 'row',
+    gap: 8,
     alignItems: 'center',
   },
   rowAmount: {
@@ -469,7 +549,88 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   deleteBtn: {
+    backgroundColor: '#fef2f2',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  deleteBtnText: {
+    color: '#dc2626',
+    fontWeight: '600',
+    fontSize: 13,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  emptyIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+    opacity: 0.6,
+  },
+  empty: {
     color: '#6b7280',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  emptyHint: {
+    color: '#9ca3af',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  inputText: {
+    fontSize: 13,
+    color: '#111827',
+  },
+  placeholderText: {
+    fontSize: 13,
+    color: '#9ca3af',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 300,
+    padding: 8,
+  },
+  modalTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  modalOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  modalOptionSelected: {
+    backgroundColor: '#eff6ff',
+  },
+  modalOptionText: {
+    fontSize: 15,
+    color: '#111827',
+  },
+  modalOptionTextSelected: {
+    color: '#2563eb',
+    fontWeight: '600',
   },
   modalBackdrop: {
     flex: 1,
@@ -490,10 +651,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
   closeBtn: {
     fontSize: 16,
     color: '#6b7280',
@@ -502,34 +659,40 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 16,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
-    backgroundColor: '#fdfdfd',
-  },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 10,
   },
   secondaryBtn: {
-    padding: 10,
     backgroundColor: 'white',
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  secondaryBtnText: {
+    color: '#374151',
+    fontWeight: '600',
+    fontSize: 14,
   },
   primaryBtn: {
     backgroundColor: '#111827',
-    padding: 10,
     borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   primaryBtnText: {
     color: 'white',
     fontWeight: '700',
+    fontSize: 14,
   },
   empty: {
     textAlign: 'center',

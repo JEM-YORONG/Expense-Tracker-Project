@@ -26,28 +26,40 @@ export default function AddTransaction({ onAdd }) {
     <View style={styles.card}>
       <Text style={styles.cardTitle}>Add Transaction</Text>
       <View style={styles.form}>
-        <TextInput
-          style={styles.input}
-          placeholder="Title"
-          value={title}
-          onChangeText={setTitle}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Amount"
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="numeric"
-        />
-        <TouchableOpacity style={styles.input} onPress={() => setShowCategoryPicker(true)}>
-          <Text style={category ? styles.inputText : styles.placeholderText}>{category}</Text>
-        </TouchableOpacity>
-        <TextInput
-          style={styles.input}
-          placeholder="Date (YYYY-MM-DD)"
-          value={date}
-          onChangeText={setDate}
-        />
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Title</Text>
+          <TextInput
+            style={styles.input}
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Enter title"
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Amount</Text>
+          <TextInput
+            style={styles.input}
+            value={amount}
+            onChangeText={setAmount}
+            placeholder="0.00"
+            keyboardType="numeric"
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Category</Text>
+          <TouchableOpacity style={styles.input} onPress={() => setShowCategoryPicker(true)}>
+            <Text style={category ? styles.inputText : styles.placeholderText}>{category}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Date</Text>
+          <TextInput
+            style={styles.input}
+            value={date}
+            onChangeText={setDate}
+            placeholder="YYYY-MM-DD"
+          />
+        </View>
 
         <Modal visible={showCategoryPicker} transparent animationType="fade">
           <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowCategoryPicker(false)}>
@@ -70,6 +82,7 @@ export default function AddTransaction({ onAdd }) {
             </View>
           </TouchableOpacity>
         </Modal>
+
         <TouchableOpacity style={styles.button} onPress={submit}>
           <Text style={styles.buttonText}>Add Transaction</Text>
         </TouchableOpacity>
@@ -96,9 +109,18 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textTransform: 'uppercase',
     marginBottom: 14,
+    letterSpacing: 0.5,
   },
   form: {
-    gap: 12,
+    gap: 14,
+  },
+  inputGroup: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#374151',
   },
   input: {
     borderWidth: 1,
@@ -107,17 +129,9 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 14,
     backgroundColor: '#fdfdfd',
-  },
-  button: {
-    backgroundColor: '#111827',
-    borderRadius: 10,
-    padding: 14,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: '700',
-    fontSize: 14,
+    color: '#111827',
+    minHeight: 44,
+    justifyContent: 'center',
   },
   inputText: {
     fontSize: 14,
@@ -126,6 +140,19 @@ const styles = StyleSheet.create({
   placeholderText: {
     fontSize: 14,
     color: '#9ca3af',
+  },
+  button: {
+    backgroundColor: '#111827',
+    borderRadius: 10,
+    padding: 14,
+    alignItems: 'center',
+    marginTop: 4,
+    minHeight: 44,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 14,
   },
   modalOverlay: {
     flex: 1,
