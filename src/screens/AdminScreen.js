@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import * as SQLite from 'expo-sqlite';
-
-// Global database instance
-let db = null;
-async function getDb() {
-  if (db) return db;
-  db = await SQLite.openDatabaseAsync('expenseTracker.db');
-  return db;
-}
+import { getDb } from '../services/database';
 
 export default function AdminScreen({ user, onLogout, onBack }) {
   const [users, setUsers] = useState([]);

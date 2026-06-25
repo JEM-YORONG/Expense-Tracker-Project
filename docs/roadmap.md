@@ -81,7 +81,7 @@
 - Form validation is minimal (client-side only)
 
 ### Architecture Observations
-- Expokit SDK 54 + React Native 0.81.5 + expo-sqlite 16.0.0
+- Expo SDK 54 + React Native 0.81.5 + expo-sqlite 16.0.0
 - No expo-asset version conflicts detected in current package.json
 - Session storage uses AsyncStorage (no encryption)
 - Role field exists in users table but no RBAC enforcement

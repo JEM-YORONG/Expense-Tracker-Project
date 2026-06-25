@@ -1,18 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ScrollView, Modal } from 'react-native';
-import * as SQLite from 'expo-sqlite';
+import { getDb } from '../services/database';
 import BalanceDisplay from '../components/BalanceDisplay';
 import BudgetInput from '../components/BudgetInput';
 import AddTransaction from '../components/AddTransaction';
 import Analytics from '../components/Analytics';
-
-// Global database instance
-let db = null;
-async function getDb() {
-  if (db) return db;
-  db = await SQLite.openDatabaseAsync('expenseTracker.db');
-  return db;
-}
 
 const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Entertainment', 'Health', 'Other'];
 const ICONS = {
