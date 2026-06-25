@@ -162,16 +162,22 @@ export default function DashboardScreen({ user, onLogout }) {
 
 function WelcomeBanner({ user }) {
   const isAdmin = user?.role === 'admin';
-  const subtitle = isAdmin 
-    ? 'Manage users and oversee the system.' 
+  const userName = user?.email ? user.email.split('@')[0] : 'User';
+  const subtitle = isAdmin
+    ? 'Manage users and oversee the system.'
     : 'Track your spending and stay on budget.';
-  
+
   return (
-    <View style={[styles.welcomeCard, styles.card]}>
-      <Text style={styles.welcomeTitle}>
-        Welcome{user?.email ? `, ${user.email.split('@')[0]}` : ''} 👋
-      </Text>
-      <Text style={styles.welcomeSubtitle}>{subtitle}</Text>
+    <View style={[styles.card, styles.welcomeCard]}>
+      <View style={styles.welcomeHeader}>
+        <View style={styles.welcomeIcon}>
+          <Text style={styles.welcomeIconText}>{isAdmin ? '👨‍💼' : '👋'}</Text>
+        </View>
+        <View style={styles.welcomeTextContainer}>
+          <Text style={styles.welcomeGreeting}>Welcome, {userName}</Text>
+          <Text style={styles.welcomeSubtitle}>{subtitle}</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -462,15 +468,34 @@ const styles = StyleSheet.create({
   welcomeCard: {
     backgroundColor: '#111827',
   },
-  welcomeTitle: {
-    fontSize: 24,
+  welcomeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  welcomeIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  welcomeIconText: {
+    fontSize: 22,
+  },
+  welcomeTextContainer: {
+    flex: 1,
+  },
+  welcomeGreeting: {
+    fontSize: 18,
     fontWeight: '800',
     color: 'white',
   },
   welcomeSubtitle: {
     color: 'rgba(255,255,255,0.85)',
-    fontSize: 15,
-    marginTop: 4,
+    fontSize: 13,
+    marginTop: 2,
   },
   filters: {
     flexDirection: 'row',
