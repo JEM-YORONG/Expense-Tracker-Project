@@ -2,36 +2,34 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function BalanceDisplay({ budget, expense, remaining }) {
+  const isOverBudget = remaining < 0;
+
   return (
     <View style={[styles.card, styles.span3]}>
       <Text style={styles.cardTitle}>Balance</Text>
-      <Text style={styles.bigNumber}>
-        {remaining < 0 ? `-₱${Math.abs(remaining)}` : `₱${remaining}`}
-      </Text>
-      
-      <View style={styles.summaryRow}>
-        <SummaryItem label="Budget" value={`₱${budget}`} />
-        <SummaryItem label="Spent" value={`₱${expense}`} danger />
-        <SummaryItem 
-          label="Remaining" 
-          value={`₱${remaining}`} 
-          ok={remaining >= 0} 
-          danger={remaining < 0} 
-        />
+      <View style={styles.bigNumberRow}>
+        <Text style={[styles.bigNumber, isOverBudget && styles.dangerBigNumber]}>
+          {isOverBudget ? `-₱${Math.abs(remaining)}` : `₱${remaining}`}
+        </Text>
       </View>
-    </View>
-  );
-}
-
-function SummaryItem({ label, value, danger, ok }) {
-  return (
-    <View style={styles.summaryItem}>
-      <Text style={styles.summaryLabel}>{label}</Text>
-      <Text style={[
-        styles.summaryValue,
-        ok && styles.ok,
-        danger && styles.danger,
-      ]}>{value}</Text>
+      <View style={styles.statsRow}>
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Budget</Text>
+          <Text style={styles.statValue}>₱{budget}</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Spent</Text>
+          <Text style={[styles.statValue, styles.danger]}>₱{expense}</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statLabel}>Remaining</Text>
+          <Text style={[styles.statValue, isOverBudget ? styles.danger : styles.ok]}>
+            {isOverBudget ? `-₱${Math.abs(remaining)}` : `₱${remaining}`}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -57,33 +55,48 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     textTransform: 'uppercase',
     marginBottom: 14,
+    letterSpacing: 0.5,
+  },
+  bigNumberRow: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   bigNumber: {
     fontSize: 30,
     fontWeight: '800',
-    letterSpacing: -0.02,
+    color: '#111827',
   },
-  summaryRow: {
+  dangerBigNumber: {
+    color: '#dc2626',
+  },
+  statsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
   },
-  summaryItem: {
+  statItem: {
     flex: 1,
-    backgroundColor: 'white',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 14,
-    padding: 12,
+    alignItems: 'center',
   },
-  summaryLabel: {
+  statDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: '#e5e7eb',
+  },
+  statLabel: {
     fontSize: 12,
+    fontWeight: '600',
     color: '#6b7280',
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  summaryValue: {
-    fontSize: 18,
+  statValue: {
+    fontSize: 16,
     fontWeight: '800',
+    color: '#111827',
     marginTop: 4,
   },
   ok: {
