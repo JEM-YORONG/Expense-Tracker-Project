@@ -7,14 +7,14 @@ The Expense Tracker is a mobile application built with React Native (Expo SDK 54
 ## Features
 
 - **Budget Management**: Users can set and update their desired budget.
-- **Transaction Tracking**: Add, view, and delete expenses or income transactions.
-- **Balance Display**: Real-time calculation of balance shows how much budget remains.
-- **Categorization**: Transactions can be assigned to categories (Food, Transport, Shopping, Bills, Entertainment, Health, Other).
-- **Visual Feedback**: Color-coded values indicate healthy (green) or overspent (red) balances.
+- **Transaction Tracking**: Add, view, edit, and delete expenses or income transactions.
+- **Balance Display**: Real-time calculation of balance with color-coded indicators (green for healthy, red for overspent).
+- **Categorization**: Transactions assigned to categories via dropdown picker (Food, Transport, Shopping, Bills, Entertainment, Health, Other).
 - **Peso Currency**: All amounts display in Philippine Peso (₱).
-- **Transaction Filtering**: Filter transactions by category, date range, and sort by newest/oldest/amount.
-- **Authentication**: Simple email/password login with persistent sessions via AsyncStorage.
-- **Admin User Management**: Admin can add/edit/delete users (admin role only).
+- **Transaction Filtering**: Filter transactions by category, date range, and sort by newest/oldest/amount-high.
+- **Authentication**: Simple email/password login with persistent sessions via AsyncStorage. Includes password visibility toggle.
+- **Admin User Management**: Admin can add/edit/delete users with role selection via dropdown (admin role only).
+- **Analytics**: Horizontal category breakdown with progress bars showing spending distribution.
 - **SQLite Storage**: Data persisted locally using expo-sqlite.
 
 ## Project Structure
@@ -27,11 +27,11 @@ Expense-Tracker-Mobile/
 ├── assets/                # Static assets
 ├── src/
 │   ├── services/
-│   │   └── database.js    # Re-exports openDatabaseAsync; theme constants (THEMES)
+│   │   └── database.js    # Centralized getDb() singleton with table creation + theme constants
 │   ├── screens/
-│   │   ├── LoginScreen.js # Login form with email/password validation
-│   │   ├── DashboardScreen.js # Main dashboard with logout button
-│   │   └── AdminScreen.js # Admin user management with nav/logout
+│   │   ├── LoginScreen.js # Login form with SafeAreaView, password toggle, validation
+│   │   ├── DashboardScreen.js # Main dashboard with header, welcome banner, transaction list
+│   │   └── AdminScreen.js # Admin user management with header, role dropdown, user list
 │   └── components/
 │       ├── BalanceDisplay.js
 │       ├── BudgetInput.js
@@ -43,37 +43,36 @@ Expense-Tracker-Mobile/
 
 ### Database Layer
 
-Each file (**App.js**, **DashboardScreen.js**, **AdminScreen.js**) has its own `getDb()` function that:
+Database access is centralized in `src/services/database.js` via a singleton `getDb()` function:
 - Opens SQLite database via `expo-sqlite`
 - Creates tables if they don't exist (users, transactions, budgets)
 - Uses SDK 54's `execAsync()` with string-based SQL
-
-**Technical Debt**: The `getDb()` function is duplicated across 3 files. This should be centralized in a single service module.
+- Imported and used by App.js, DashboardScreen.js, and AdminScreen.js
 
 ### Screens
 
 - **App.js** - Root shell, initializes database, handles authentication state
-- **LoginScreen.js** - Login form with email/password validation, displays errors
+- **LoginScreen.js** - Login form with SafeAreaView, email/password validation, password visibility toggle, error display
 - **DashboardScreen.js** - Main dashboard with:
-  - Header with 🚪 logout button
-  - Welcome banner
-  - Balance display
-  - Budget input
-  - Analytics chart
-  - Add transaction form
-  - Transaction list with edit/delete
+  - Header with "Logout" text button
+  - Welcome banner with user name and role-based subtitle
+  - Balance display with centered amount and stats row
+  - Budget input with label
+  - Analytics with horizontal category breakdown and progress bars
+  - Add transaction form with category dropdown
+  - Transaction list with category/sort dropdown filters, edit/delete actions
 - **AdminScreen.js** - User management with:
-  - Header with 🏠 (back to dashboard) and 🚪 (logout) buttons
-  - User creation form
-  - User list with edit/delete
+  - Header with "Logout" text button
+  - User creation form with role dropdown
+  - User list with edit/delete text buttons
   - Password fields (optional on edit)
 
 ### Components
 
-- **BalanceDisplay** - Shows balance with summary cards (budget, spent, remaining)
-- **BudgetInput** - Form to set/update budget
-- **AddTransaction** - Form to add new transactions with title, amount, category, date
-- **Analytics** - Bar chart showing spending by category
+- **BalanceDisplay** - Centered large balance amount with horizontal stats row (Budget / Spent / Remaining)
+- **BudgetInput** - Form to set/update budget with label and input
+- **AddTransaction** - Form to add new transactions with title, amount, category dropdown, date
+- **Analytics** - Horizontal category breakdown list with colored icon badges, amounts, percentages, and progress bars
 
 ## Database Schema
 
@@ -146,6 +145,18 @@ await db.execAsync('CREATE TABLE IF NOT EXISTS users (...)');
 // await db.execAsync([{ sql: 'CREATE TABLE...', args: [] }]);
 ```
 
+## UI/UX Standards
+
+The app follows these mobile UI standards:
+- **SafeAreaView**: All screens wrapped in SafeAreaView for notch/status bar safety
+- **Touch Targets**: All interactive elements have minHeight: 44
+- **Typography**: Labels use fontSize 13, fontWeight '600', color #374151
+- **Inputs**: Border 1px #e5e7eb, radius 10, padding 12, bg #fdfdfd, minHeight 44
+- **Buttons**: bg #111827, radius 10, paddingVertical 12, paddingHorizontal 16, minHeight 44
+- **Cards**: bg white, radius 16, padding 18, shadow
+- **Dropdowns**: Modal-based pickers for category and role fields
+- **Empty States**: Icon + message + hint text for empty lists
+
 ## Known Issues
 
 - Expo Go must be updated to latest version for SDK 54 compatibility
@@ -156,7 +167,6 @@ await db.execAsync('CREATE TABLE IF NOT EXISTS users (...)');
 
 The following issues require attention in future sprints:
 
-- **Database centralization**: `getDb()` duplicated in App.js, DashboardScreen.js, AdminScreen.js
 - **No error boundaries**: App can crash without recovery UI
 - **Form validation**: Minimal client-side validation only (no schema validation)
 - **No TypeScript**: All `.js` files lack type safety
