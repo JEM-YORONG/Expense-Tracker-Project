@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, ScrollView, Modal } from 'react-native';
 import { getDb } from '../services/database';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,6 +9,7 @@ export default function AdminScreen({ user, onLogout, onBack }) {
   const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showRolePicker, setShowRolePicker] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -136,13 +137,34 @@ export default function AdminScreen({ user, onLogout, onBack }) {
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Role</Text>
-              <TextInput
-                style={styles.input}
-                value={form.role}
-                onChangeText={(text) => setForm({ ...form, role: text })}
-                placeholder="user or admin"
-              />
+              <TouchableOpacity style={styles.input} onPress={() => setShowRolePicker(true)}>
+                <Text style={form.role ? styles.inputText : styles.placeholderText}>
+                  {form.role || 'Select role'}
+                </Text>
+              </TouchableOpacity>
             </View>
+
+            <Modal visible={showRolePicker} transparent animationType="fade">
+              <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowRolePicker(false)}>
+                <View style={styles.modalContent}>
+                  <Text style={styles.modalTitle}>Select Role</Text>
+                  {['user', 'admin'].map((role) => (
+                    <TouchableOpacity
+                      key={role}
+                      style={[styles.modalOption, form.role === role && styles.modalOptionSelected]}
+                      onPress={() => {
+                        setForm({ ...form, role });
+                        setShowRolePicker(false);
+                      }}
+                    >
+                      <Text style={[styles.modalOptionText, form.role === role && styles.modalOptionTextSelected]}>
+                        {role}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </TouchableOpacity>
+            </Modal>
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -470,5 +492,51 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontWeight: '600',
     fontSize: 13,
+  },
+  inputText: {
+    fontSize: 14,
+    color: '#111827',
+  },
+  placeholderText: {
+    fontSize: 14,
+    color: '#9ca3af',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    width: '100%',
+    maxWidth: 300,
+    padding: 8,
+  },
+  modalTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  modalOption: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+  },
+  modalOptionSelected: {
+    backgroundColor: '#eff6ff',
+  },
+  modalOptionText: {
+    fontSize: 15,
+    color: '#111827',
+  },
+  modalOptionTextSelected: {
+    color: '#2563eb',
+    fontWeight: '600',
   },
 });
